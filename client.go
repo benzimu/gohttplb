@@ -13,41 +13,60 @@ var (
 	ErrInvalidAddr = errors.New("Invalid addr")
 )
 
-var defaultLBClientConfig = &LBClientConfig{
-	SchedPolicy: PolicyRandomRetry,
-	Retry:       3,
+// Headers
+var (
+	HeaderContentType  = "Content-Type"
+	DefaultContentType = "application/json; charset=utf-8"
+	HeaderAccept       = "Accept"
+	DefaultAccept      = "application/json"
+)
+
+var defaultLBClientConfig = &LBConfig{
+	SchedPolicy: PolicyRandom,
+	Retry:       1,
+	Client:      defaultHTTPClient,
+	Separator:   ",",
 }
 
-// LBClientConfig for init LBClient config
-type LBClientConfig struct {
+// LBConfig for init LBClient config
+type LBConfig struct {
 	// SchedPolicy request schedule policy
-	// Default PolicyRandomRetry
+	// Default PolicyRandom
 	SchedPolicy SchedPolicy
-	// Retry request retry count if return err
-	// PolicyRandom and PolicyOrder no retry
-	// Default 3
+	// Retry request retry if return err
+	// Most retries: len(servers) * Retry
+	// Default 1
 	Retry int
+	// Client for http request
+	// Default defaultHTTPClient
+	Client *http.Client
+	// Separator split addr
+	// Default ","
+	Separator string
+	// ResponseParser response parser
+	// Will auto parse response if set
+	ResponseParser ResponseParser
 }
 
 // LBClient ...
 type LBClient struct {
-	*R
+	r *R
 }
 
-// NewLBClient ...
-func NewLBClient(addr string, config ...*LBClientConfig) (*LBClient, error) {
+// New ...
+func New(addr string, config ...*LBConfig) (*LBClient, error) {
 	if addr == "" {
 		return nil, ErrInvalidAddr
 	}
 
-	addrs := utils.AddSchemeSlice(utils.TrimStringSlice(strings.Split(addr, ",")))
-	if len(addrs) == 0 {
-		return nil, ErrInvalidAddr
-	}
-
-	var conf = defaultLBClientConfig
+	conf := defaultLBClientConfig
 	if len(config) > 0 {
 		conf = config[0]
+	}
+
+	addrs := utils.AddSchemeSlice(utils.TrimStringSlice(strings.Split(addr, conf.Separator)))
+	if len(addrs) == 0 {
+		return nil, ErrInvalidAddr
 	}
 
 	r := NewR(addrs, conf)
@@ -55,27 +74,131 @@ func NewLBClient(addr string, config ...*LBClientConfig) (*LBClient, error) {
 	return &LBClient{r}, nil
 }
 
-// Get ...
-func (lbc *LBClient) Get(method, url string, params map[string]string, header map[string]string) (resp *http.Response, err error) {
-	return lbc.get(http.MethodGet, url, params, header)
+func (lbc *LBClient) parseParamsHeaders(paramsHeaders []map[string]string) (params map[string]string, headers map[string]string) {
+	if len(paramsHeaders) == 0 {
+		return
+	} else if len(paramsHeaders) == 1 {
+		params = paramsHeaders[0]
+		return
+	}
+
+	params = paramsHeaders[0]
+	headers = paramsHeaders[1]
+	return
 }
 
-// Post ...
-func (lbc *LBClient) Post(method, url string, params map[string]string, header map[string]string, body []byte) (resp *http.Response, err error) {
-	return lbc.post(http.MethodPost, url, params, header, body)
+// Get method request
+func (lbc *LBClient) Get(url string, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
+	params, headers := lbc.parseParamsHeaders(paramsHeaders)
+	return lbc.r.get(http.MethodGet, url, params, headers)
 }
 
-// Delete ...
-func (lbc *LBClient) Delete(method, url string, params map[string]string, header map[string]string) (resp *http.Response, err error) {
-	return lbc.delete(http.MethodDelete, url, params, header)
+// Post method request
+func (lbc *LBClient) Post(url string, body []byte, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
+	params, headers := lbc.parseParamsHeaders(paramsHeaders)
+	return lbc.r.post(http.MethodPost, url, params, headers, body)
 }
 
-// Put ...
-func (lbc *LBClient) Put(method, url string, params map[string]string, header map[string]string, body []byte) (resp *http.Response, err error) {
-	return lbc.put(http.MethodPut, url, params, header, body)
+// Delete method request
+func (lbc *LBClient) Delete(url string, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
+	params, headers := lbc.parseParamsHeaders(paramsHeaders)
+	return lbc.r.delete(http.MethodDelete, url, params, headers)
 }
 
-// Patch ...
-func (lbc *LBClient) Patch(method, url string, params map[string]string, header map[string]string, body []byte) (resp *http.Response, err error) {
-	return lbc.patch(http.MethodPatch, url, params, header, body)
+// Put method request
+func (lbc *LBClient) Put(url string, body []byte, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
+	params, headers := lbc.parseParamsHeaders(paramsHeaders)
+	return lbc.r.put(http.MethodPut, url, params, headers, body)
+}
+
+// Patch method request
+func (lbc *LBClient) Patch(url string, body []byte, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
+	params, headers := lbc.parseParamsHeaders(paramsHeaders)
+	return lbc.r.patch(http.MethodPatch, url, params, headers, body)
+}
+
+// ParseGet get method request and parse response
+func (lbc *LBClient) ParseGet(url string, paramsHeaders ...map[string]string) (statusCode int, data []byte, err error) {
+	params, headers := lbc.parseParamsHeaders(paramsHeaders)
+	return lbc.r.parseGet(http.MethodGet, url, params, headers)
+}
+
+// ParsePost post method request and parse response
+func (lbc *LBClient) ParsePost(url string, body []byte, paramsHeaders ...map[string]string) (statusCode int, data []byte, err error) {
+	params, headers := lbc.parseParamsHeaders(paramsHeaders)
+	return lbc.r.parsePost(http.MethodPost, url, params, headers, body)
+}
+
+// ParseDelete delete method request and parse response
+func (lbc *LBClient) ParseDelete(url string, paramsHeaders ...map[string]string) (statusCode int, data []byte, err error) {
+	params, headers := lbc.parseParamsHeaders(paramsHeaders)
+	return lbc.r.parseDelete(http.MethodDelete, url, params, headers)
+}
+
+// ParsePut put method request and parse response
+func (lbc *LBClient) ParsePut(url string, body []byte, paramsHeaders ...map[string]string) (statusCode int, data []byte, err error) {
+	params, headers := lbc.parseParamsHeaders(paramsHeaders)
+	return lbc.r.parsePut(http.MethodPut, url, params, headers, body)
+}
+
+// ParsePatch patch method request and parse response
+func (lbc *LBClient) ParsePatch(url string, body []byte, paramsHeaders ...map[string]string) (statusCode int, data []byte, err error) {
+	params, headers := lbc.parseParamsHeaders(paramsHeaders)
+	return lbc.r.parsePatch(http.MethodPatch, url, params, headers, body)
+}
+
+func (lbc *LBClient) setJSONHeader(headers map[string]string) {
+	headers[HeaderContentType] = DefaultContentType
+	headers[HeaderAccept] = DefaultAccept
+}
+
+func (lbc *LBClient) jsonParamsHeaders(paramsHeaders []map[string]string) (params map[string]string, headers map[string]string) {
+	params, headers = lbc.parseParamsHeaders(paramsHeaders)
+	if headers == nil {
+		headers = make(map[string]string)
+	}
+	lbc.setJSONHeader(headers)
+	return
+}
+
+// JSONGet json get method request
+func (lbc *LBClient) JSONGet(url string, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
+	params, headers := lbc.jsonParamsHeaders(paramsHeaders)
+	return lbc.r.get(http.MethodGet, url, params, headers)
+}
+
+// JSONPost json post method request
+func (lbc *LBClient) JSONPost(url string, body []byte, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
+	params, headers := lbc.jsonParamsHeaders(paramsHeaders)
+	return lbc.r.post(http.MethodPost, url, params, headers, body)
+}
+
+// JSONDelete json delete method request
+func (lbc *LBClient) JSONDelete(url string, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
+	params, headers := lbc.jsonParamsHeaders(paramsHeaders)
+	return lbc.r.delete(http.MethodDelete, url, params, headers)
+}
+
+// JSONPut json put method request
+func (lbc *LBClient) JSONPut(url string, body []byte, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
+	params, headers := lbc.jsonParamsHeaders(paramsHeaders)
+	return lbc.r.put(http.MethodPut, url, params, headers, body)
+}
+
+// JSONPatch json patch method request
+func (lbc *LBClient) JSONPatch(url string, body []byte, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
+	params, headers := lbc.jsonParamsHeaders(paramsHeaders)
+	return lbc.r.patch(http.MethodPatch, url, params, headers, body)
+}
+
+// ParseResponse ...
+func (lbc *LBClient) ParseResponse(resp *http.Response, rps ...ResponseParser) (int, []byte, error) {
+	var rp ResponseParser
+	if len(rps) > 0 {
+		rp = rps[0]
+	} else {
+		rp = &DefaultResponseParser{}
+	}
+
+	return rp.parse(resp)
 }

@@ -24,16 +24,16 @@ var defaultHTTPClient = &http.Client{
 // R is Request struct
 type R struct {
 	servers []string
-	*LBClientConfig
+	*LBConfig
 	*http.Client
 }
 
 // NewR new R
-func NewR(servers []string, conf *LBClientConfig) *R {
+func NewR(servers []string, conf *LBConfig) *R {
 	return &R{
-		servers:        servers,
-		LBClientConfig: conf,
-		Client:         defaultHTTPClient,
+		servers:  servers,
+		LBConfig: conf,
+		Client:   conf.Client,
 	}
 }
 
@@ -73,60 +73,66 @@ type rArgs struct {
 	body    []byte
 }
 
-func (r *R) get(method, url string, params map[string]string, headers map[string]string) (resp *http.Response, err error) {
+func (r *R) doSchedule(method, url string, params map[string]string, headers map[string]string, body []byte) (resp *http.Response, err error) {
 	rA := &rArgs{
 		method:  method,
 		url:     url,
 		params:  params,
 		headers: headers,
+		body:    body,
 	}
 	rScheduler := NewRScheduler(r)
 	return rScheduler.schedule(rA)
+}
+
+func (r *R) get(method, url string, params map[string]string, headers map[string]string) (resp *http.Response, err error) {
+	return r.doSchedule(method, url, params, headers, nil)
 }
 
 func (r *R) post(method, url string, params map[string]string, headers map[string]string, body []byte) (resp *http.Response, err error) {
-	rA := &rArgs{
-		method:  method,
-		url:     url,
-		params:  params,
-		headers: headers,
-		body:    body,
-	}
-	rScheduler := NewRScheduler(r)
-	return rScheduler.schedule(rA)
+	return r.doSchedule(method, url, params, headers, body)
 }
 
 func (r *R) delete(method, url string, params map[string]string, headers map[string]string) (resp *http.Response, err error) {
-	rA := &rArgs{
-		method:  method,
-		url:     url,
-		params:  params,
-		headers: headers,
-	}
-	rScheduler := NewRScheduler(r)
-	return rScheduler.schedule(rA)
+	return r.doSchedule(method, url, params, headers, nil)
 }
 
 func (r *R) put(method, url string, params map[string]string, headers map[string]string, body []byte) (resp *http.Response, err error) {
-	rA := &rArgs{
-		method:  method,
-		url:     url,
-		params:  params,
-		headers: headers,
-		body:    body,
-	}
-	rScheduler := NewRScheduler(r)
-	return rScheduler.schedule(rA)
+	return r.doSchedule(method, url, params, headers, body)
 }
 
 func (r *R) patch(method, url string, params map[string]string, headers map[string]string, body []byte) (resp *http.Response, err error) {
-	rA := &rArgs{
-		method:  method,
-		url:     url,
-		params:  params,
-		headers: headers,
-		body:    body,
+	return r.doSchedule(method, url, params, headers, body)
+}
+
+func (r *R) parseDo(method, url string, params map[string]string, headers map[string]string, body []byte) (statusCode int, data []byte, err error) {
+	response, err := r.doSchedule(method, url, params, headers, body)
+	if err != nil {
+		return response.StatusCode, nil, err
 	}
-	rScheduler := NewRScheduler(r)
-	return rScheduler.schedule(rA)
+
+	if r.ResponseParser == nil {
+		r.ResponseParser = &DefaultResponseParser{}
+	}
+	return r.ResponseParser.parse(response)
+}
+
+func (r *R) parseGet(method, url string, params map[string]string, headers map[string]string) (statusCode int, data []byte, err error) {
+	return r.parseDo(method, url, params, headers, nil)
+}
+
+func (r *R) parsePost(method, url string, params map[string]string, headers map[string]string, body []byte) (statusCode int, data []byte, err error) {
+	return r.parseDo(method, url, params, headers, body)
+}
+
+func (r *R) parseDelete(method, url string, params map[string]string, headers map[string]string) (statusCode int, data []byte, err error) {
+	return r.parseDo(method, url, params, headers, nil)
+}
+
+func (r *R) parsePut(method, url string, params map[string]string, headers map[string]string, body []byte) (statusCode int, data []byte, err error) {
+	return r.parseDo(method, url, params, headers, body)
+}
+
+func (r *R) parsePatch(method, url string, params map[string]string, headers map[string]string, body []byte) (statusCode int, data []byte, err error) {
+	return r.parseDo(method, url, params, headers, body)
 }

@@ -2,6 +2,7 @@ package gohttplb
 
 import (
 	"gohttplb/utils"
+	"log"
 	"net/http"
 )
 
@@ -9,17 +10,13 @@ import (
 type SchedPolicy int
 
 const (
-	// PolicyRandom for random policy
+	// PolicyRandom random policy
 	PolicyRandom SchedPolicy = iota + 1
-	// PolicyRandomRetry for random retry policy
-	PolicyRandomRetry
-	// PolicyOrder for servers order policy
+	// PolicyOrder order policy
 	PolicyOrder
-	// PolicyOrderRetry for servers order retry policy
-	PolicyOrderRetry
-	// PolicyFlow for flow policy
+	// PolicyFlow flow policy
 	PolicyFlow
-	// PolicyFlowWeight for flow weight policy
+	// PolicyFlowWeight flow weight policy
 	PolicyFlowWeight
 )
 
@@ -28,10 +25,10 @@ func NewRScheduler(r *R) RScheduler {
 	switch r.SchedPolicy {
 	case PolicyRandom:
 		return &RandomScheduler{r}
-	case PolicyRandomRetry:
-		return &RandomRetryScheduler{r}
+	case PolicyOrder:
+		return &OrderScheduler{r}
 	default:
-		return &RandomRetryScheduler{r}
+		return &RandomScheduler{r}
 	}
 }
 
@@ -45,22 +42,61 @@ type RandomScheduler struct {
 	*R
 }
 
-func (sche *RandomScheduler) schedule(rargs *rArgs) (resp *http.Response, err error) {
-	server := sche.servers[utils.GenRandIntn(len(sche.servers))]
-	rargs.url = server + rargs.url
-	return sche.do(rargs)
+func (sched *RandomScheduler) schedule(rargs *rArgs) (resp *http.Response, err error) {
+	for retry := 0; retry < sched.Retry; retry++ {
+		servers := sched.servers
+		for count := 0; count < len(servers); count++ {
+			index := utils.GenRandIntn(len(servers))
+			server := servers[index]
+			rargs.url = server + rargs.url
+			resp, err = sched.do(rargs)
+			if err != nil {
+				log.Printf("WARN: %s; server: %s", err, server)
+				servers = append(servers[:index], servers[index+1:]...)
+				continue
+			}
+			return
+		}
+	}
+	return
 }
 
-// RandomRetryScheduler for PolicyRandomRetry
-type RandomRetryScheduler struct {
+// OrderScheduler for PolicyOrder scheduler
+type OrderScheduler struct {
 	*R
 }
 
-func (sche *RandomRetryScheduler) schedule(rargs *rArgs) (resp *http.Response, err error) {
-	for count := 1; count <= sche.Retry; count++ {
-		server := sche.servers[utils.GenRandIntn(len(sche.servers))]
-		rargs.url = server + rargs.url
+func (sched *OrderScheduler) schedule(rargs *rArgs) (resp *http.Response, err error) {
+	for retry := 0; retry < sched.Retry; retry++ {
+		for _, server := range sched.servers {
+			rargs.url = server + rargs.url
+			resp, err = sched.do(rargs)
+			if err != nil {
+				log.Printf("WARN: %s; server: %s", err, server)
+				continue
+			}
+			return
+		}
 	}
+	return
+}
 
-	return sche.do(rargs)
+// FlowScheduler for PolicyFlow scheduler
+type FlowScheduler struct {
+	*R
+}
+
+func (sched *FlowScheduler) schedule(rargs *rArgs) (resp *http.Response, err error) {
+	for retry := 0; retry < sched.Retry; retry++ {
+		for _, server := range sched.servers {
+			rargs.url = server + rargs.url
+			resp, err = sched.do(rargs)
+			if err != nil {
+				log.Printf("WARN: %s; server: %s", err, server)
+				continue
+			}
+			return
+		}
+	}
+	return
 }
