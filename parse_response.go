@@ -9,23 +9,18 @@ import (
 
 // ResponseParser custom response parser
 type ResponseParser interface {
-	parse(*http.Response) (int, []byte, error)
+	Parse(*http.Response) (int, []byte, error)
 }
 
-// ResponseD define a ResponseD struct
-type ResponseD struct {
+// DefaultResponseParser for default data struct
+type DefaultResponseParser struct {
 	Success bool        `json:"success"`
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
 }
 
-// DefaultResponseParser for default data struct
-type DefaultResponseParser struct {
-	*ResponseD
-}
-
-func (parser *DefaultResponseParser) parse(resp *http.Response) (statusCode int, data []byte, err error) {
+func (parser *DefaultResponseParser) Parse(resp *http.Response) (statusCode int, data []byte, err error) {
 	defer resp.Body.Close()
 	statusCode = resp.StatusCode
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
@@ -33,22 +28,22 @@ func (parser *DefaultResponseParser) parse(resp *http.Response) (statusCode int,
 		return
 	}
 
-	if err = json.Unmarshal(bodyBytes, parser.Data); err != nil {
+	if err = json.Unmarshal(bodyBytes, parser); err != nil {
 		return
 	}
 
-	data, err = json.Marshal(parser.ResponseD.Data)
+	data, err = json.Marshal(parser.Data)
 	if err != nil {
 		return
 	}
 
-	if !parser.ResponseD.Success {
-		err = fmt.Errorf("Unsuccess: %s", parser.ResponseD.Message)
+	if !parser.Success {
+		err = fmt.Errorf("Unsuccess: %d-%s", parser.Code, parser.Message)
 		return
 	}
 
-	if statusCode < http.StatusOK || statusCode >= http.StatusBadRequest {
-		err = fmt.Errorf("StatusCode not ok: %s", parser.ResponseD.Message)
+	if statusCode < http.StatusOK || statusCode >= http.StatusMultipleChoices {
+		err = fmt.Errorf("StatusCode not ok: %d-%s", parser.Code, parser.Message)
 		return
 	}
 

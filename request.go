@@ -38,15 +38,6 @@ func NewR(servers []string, conf *LBConfig) *R {
 }
 
 func (r *R) do(rargs *rArgs) (resp *http.Response, err error) {
-	var paramStr string
-	if len(rargs.params) != 0 {
-		paramStr += "?"
-		for key, val := range rargs.params {
-			paramStr += key + "=" + val
-		}
-	}
-	rargs.url += paramStr
-
 	var bodyReader io.Reader
 	if rargs.body != nil {
 		bodyReader = bytes.NewReader(rargs.body)
@@ -55,6 +46,14 @@ func (r *R) do(rargs *rArgs) (resp *http.Response, err error) {
 	req, err := http.NewRequest(rargs.method, rargs.url, bodyReader)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(rargs.params) != 0 {
+		q := req.URL.Query()
+		for key, val := range rargs.params {
+			q.Add(key, val)
+		}
+		req.URL.RawQuery = q.Encode()
 	}
 
 	for key, val := range rargs.headers {
@@ -80,6 +79,11 @@ func (r *R) doSchedule(method, url string, params map[string]string, headers map
 		params:  params,
 		headers: headers,
 		body:    body,
+	}
+	// TODO: filter last request failed server
+	if len(r.servers) == 1 {
+		rA.url = r.servers[0] + rA.url
+		return r.do(rA)
 	}
 	rScheduler := NewRScheduler(r)
 	return rScheduler.schedule(rA)
@@ -114,7 +118,7 @@ func (r *R) parseDo(method, url string, params map[string]string, headers map[st
 	if r.ResponseParser == nil {
 		r.ResponseParser = &DefaultResponseParser{}
 	}
-	return r.ResponseParser.parse(response)
+	return r.ResponseParser.Parse(response)
 }
 
 func (r *R) parseGet(method, url string, params map[string]string, headers map[string]string) (statusCode int, data []byte, err error) {
