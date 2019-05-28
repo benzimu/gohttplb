@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // Errors
@@ -21,10 +22,11 @@ var (
 
 // Default config
 var (
-	DefaultSchedPolicy = PolicyRandom
-	DefaultRetry       = 1
-	DefaultClient      = defaultHTTPClient
-	DefaultSeparator   = ","
+	DefaultSchedPolicy   = PolicyRandom
+	DefaultRetry         = 1
+	DefaultSeparator     = ","
+	DefaultTransport     = defaultTransport
+	DefaultClientTimeout = 10 * time.Second
 )
 
 func setDefaultConf(conf *LBConfig) {
@@ -34,11 +36,18 @@ func setDefaultConf(conf *LBConfig) {
 	if conf.Retry == 0 {
 		conf.Retry = DefaultRetry
 	}
-	if conf.Client == nil {
-		conf.Client = DefaultClient
-	}
 	if conf.Separator == "" {
 		conf.Separator = DefaultSeparator
+	}
+	if conf.Transport == nil {
+		conf.Transport = DefaultTransport
+	}
+	if conf.ClientTimeout == 0 {
+		conf.ClientTimeout = DefaultClientTimeout
+	}
+	conf.Client = &http.Client{
+		Transport: conf.Transport,
+		Timeout:   conf.ClientTimeout,
 	}
 }
 
@@ -60,6 +69,10 @@ type LBConfig struct {
 	// ResponseParser response parser
 	// Will auto parse response if set, and must use ParseGet, ParsePost...
 	ResponseParser ResponseParser
+	// Transport for http client
+	Transport *http.Transport
+	// ClientTimeout for `http.Client.Timeout`
+	ClientTimeout time.Duration
 }
 
 // LBClient ...

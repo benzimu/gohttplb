@@ -20,6 +20,7 @@ type DefaultResponseParser struct {
 	Data    interface{} `json:"data"`
 }
 
+// Parse implemente interface `ResponseParser.Parse`
 func (parser *DefaultResponseParser) Parse(resp *http.Response) (statusCode int, data []byte, err error) {
 	defer resp.Body.Close()
 	statusCode = resp.StatusCode
