@@ -14,6 +14,7 @@ var defaultTransport = &http.Transport{
 		KeepAlive: 30 * time.Second,
 	}).DialContext,
 	MaxIdleConns:        100,
+	MaxIdleConnsPerHost: 3,
 	IdleConnTimeout:     90 * time.Second,
 	TLSHandshakeTimeout: 5 * time.Second,
 }
