@@ -31,7 +31,7 @@ func NewR(servers []string, conf *LBConfig) *R {
 	return &R{
 		servers:  servers,
 		LBConfig: conf,
-		Client:   conf.Client,
+		Client:   conf.client,
 	}
 }
 

@@ -45,7 +45,7 @@ func setDefaultConf(conf *LBConfig) {
 	if conf.ClientTimeout == 0 {
 		conf.ClientTimeout = DefaultClientTimeout
 	}
-	conf.Client = &http.Client{
+	conf.client = &http.Client{
 		Transport: conf.Transport,
 		Timeout:   conf.ClientTimeout,
 	}
@@ -62,7 +62,7 @@ type LBConfig struct {
 	Retry int
 	// Client for http request
 	// Default defaultHTTPClient
-	Client *http.Client
+	client *http.Client
 	// Separator split addr
 	// Default ","
 	Separator string
