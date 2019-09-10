@@ -1,4 +1,4 @@
-package gohttplb
+package utils
 
 import (
 	"math/rand"
@@ -76,4 +76,17 @@ func RemoveDuplicateElement(elements []string) []string {
 		}
 	}
 	return result
+}
+
+// Gcd is greatest common divisor for x, y
+func Gcd(x, y int) int {
+	if x == 0 || y == 0 {
+		return 0
+	}
+	tmp := x % y
+	if tmp > 0 {
+		return Gcd(y, tmp)
+	} else {
+		return y
+	}
 }
