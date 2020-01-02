@@ -1,4 +1,4 @@
-package strategy
+package gohttplb
 
 // LoadBalancingStrategy is load balancing strategy for selecting request server
 type LoadBalancingStrategy int
@@ -24,11 +24,11 @@ func NewScheduler(strategy LoadBalancingStrategy, servers []string, serverWeight
 	var scheduler Scheduler
 	switch strategy {
 	case StrategyRoundRobin:
-		scheduler = &RoundRobinMaker{servers: servers}
+		scheduler = &strategy.RoundRobinMaker{servers: servers}
 	case StrategyWeightedRoundRobin:
-		scheduler = NewWeightedRoundRobinMaker(serverWeighteds)
+		scheduler = strategy.NewWeightedRoundRobinMaker(serverWeighteds)
 	default:
-		scheduler = &RoundRobinMaker{servers: servers}
+		scheduler = &strategy.RoundRobinMaker{servers: servers}
 	}
 	return scheduler
 }

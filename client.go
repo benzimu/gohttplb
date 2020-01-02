@@ -8,9 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"gohttplb/strategy"
-	"gohttplb/utils"
 )
 
 // Errors
@@ -23,7 +20,7 @@ var (
 var (
 	DefaultAddrsSeparator        = ","
 	DefaultAddrWeightedSeparator = "@@"
-	DefaultStrategy              = strategy.StrategyRoundRobin
+	DefaultStrategy              = StrategyRoundRobin
 )
 
 // Headers
@@ -61,7 +58,7 @@ func setDefaultConf(conf *LBConfig) {
 type LBConfig struct {
 	// Strategy request schedule policy
 	// Default StrategyRoundRobin
-	Strategy strategy.LoadBalancingStrategy
+	Strategy LoadBalancingStrategy
 	// Retry request retry if return err, will retry all servers if retry set 1
 	// Most retries: len(servers) * Retry
 	// Default 1
@@ -98,7 +95,7 @@ func New(addr string, config ...*LBConfig) (*LBClient, error) {
 	setDefaultConf(conf)
 
 	// validation addr param
-	addrs := utils.AddSchemeSlice(utils.RemoveDuplicateElement(utils.TrimStringSlice(
+	addrs := AddSchemeSlice(RemoveDuplicateElement(TrimStringSlice(
 		strings.Split(addr, DefaultAddrsSeparator))))
 	if len(addrs) == 0 {
 		return nil, ErrInvalidAddr
@@ -112,20 +109,20 @@ func New(addr string, config ...*LBConfig) (*LBClient, error) {
 	conf.Strategy = strategy
 
 	// new R
-	r := NewR(addrs, serverWeighteds, conf)
+	r := newR(addrs, serverWeighteds, conf)
 
 	return &LBClient{r}, nil
 }
 
-func determineStrategy(addrs []string) (strategy.LoadBalancingStrategy, []strategy.ServerItem, error) {
+func determineStrategy(addrs []string) (LoadBalancingStrategy, []ServerItem, error) {
 	if len(addrs) == 0 {
 		return 0, nil, ErrInvalidAddr
 	}
 
 	if existWeightedAddr(addrs) {
-		weightedAddrs := make([]strategy.ServerItem, 0)
+		weightedAddrs := make([]ServerItem, 0)
 		for _, addr := range addrs {
-			serverItem := strategy.ServerItem{}
+			serverItem := ServerItem{}
 			if strings.Contains(addr, DefaultAddrWeightedSeparator) {
 				addrWeighteds := strings.Split(addr, DefaultAddrWeightedSeparator)
 				serverItem.Server = addrWeighteds[0]
@@ -140,7 +137,7 @@ func determineStrategy(addrs []string) (strategy.LoadBalancingStrategy, []strate
 			}
 			weightedAddrs = append(weightedAddrs, serverItem)
 		}
-		return strategy.StrategyWeightedRoundRobin, weightedAddrs, nil
+		return StrategyWeightedRoundRobin, weightedAddrs, nil
 	}
 
 	return DefaultStrategy, nil, nil

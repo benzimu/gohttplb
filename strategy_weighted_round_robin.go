@@ -1,8 +1,4 @@
-package strategy
-
-import (
-	"gohttplb/utils"
-)
+package gohttplb
 
 // ServerItem is server item with weighted
 type ServerItem struct {
@@ -40,7 +36,7 @@ func NewWeightedRoundRobinMaker(servers []ServerItem) *WeightedRoundRobinMaker {
 			maker.gcdW = server.Weighted
 			maker.maxW = server.Weighted
 		} else {
-			maker.gcdW = utils.Gcd(maker.gcdW, server.Weighted)
+			maker.gcdW = Gcd(maker.gcdW, server.Weighted)
 			if maker.maxW < server.Weighted {
 				maker.maxW = server.Weighted
 			}

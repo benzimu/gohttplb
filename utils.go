@@ -1,4 +1,4 @@
-package utils
+package gohttplb
 
 import (
 	"math/rand"

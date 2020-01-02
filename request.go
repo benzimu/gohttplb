@@ -2,7 +2,6 @@ package gohttplb
 
 import (
 	"bytes"
-	"gohttplb/strategy"
 	"io"
 	"net"
 	"net/http"
@@ -23,14 +22,14 @@ var defaultTransport = &http.Transport{
 // R is Request struct
 type R struct {
 	servers         []string
-	serverWeighteds []strategy.ServerItem
-	scheduler       strategy.Scheduler
+	serverWeighteds []ServerItem
+	scheduler       Scheduler
 	*LBConfig
 	*http.Client
 }
 
-// NewR new R
-func NewR(servers []string, serverWeighteds []strategy.ServerItem, conf *LBConfig) *R {
+// newR new R
+func newR(servers []string, serverWeighteds []ServerItem, conf *LBConfig) *R {
 	r := &R{
 		servers:         servers,
 		serverWeighteds: serverWeighteds,
@@ -38,7 +37,7 @@ func NewR(servers []string, serverWeighteds []strategy.ServerItem, conf *LBConfi
 		Client:          conf.client,
 	}
 
-	r.scheduler = strategy.NewScheduler(conf.Strategy, servers, serverWeighteds)
+	r.scheduler = NewScheduler(conf.Strategy, servers, serverWeighteds)
 	return r
 }
 
