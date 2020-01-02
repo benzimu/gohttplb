@@ -49,6 +49,7 @@ func NewWeightedRoundRobinMaker(servers []ServerItem) *WeightedRoundRobinMaker {
 	return maker
 }
 
+// Make implement Scheduler interface
 func (maker *WeightedRoundRobinMaker) Make() (server string) {
 	if maker.n == 0 {
 		return ""

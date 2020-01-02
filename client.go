@@ -60,7 +60,7 @@ func setDefaultConf(conf *LBConfig) {
 // LBConfig for init LBClient config
 type LBConfig struct {
 	// Strategy request schedule policy
-	// Default PolicyRandom
+	// Default StrategyRoundRobin
 	Strategy strategy.LoadBalancingStrategy
 	// Retry request retry if return err, will retry all servers if retry set 1
 	// Most retries: len(servers) * Retry
@@ -70,11 +70,12 @@ type LBConfig struct {
 	// Default defaultHTTPClient
 	client *http.Client
 	// ResponseParser response parser
-	// Will auto parse response if set, and must use ParseGet, ParsePost...
+	// Will auto parse response if set, and must use JPGet, JPPost...
 	ResponseParser ResponseParser
 	// Transport for http client
 	Transport *http.Transport
 	// ClientTimeout for `http.Client.Timeout`
+	// Default 10s
 	ClientTimeout time.Duration
 }
 
