@@ -24,11 +24,11 @@ func NewScheduler(strategy LoadBalancingStrategy, servers []string, serverWeight
 	var scheduler Scheduler
 	switch strategy {
 	case StrategyRoundRobin:
-		scheduler = &strategy.RoundRobinMaker{servers: servers}
+		scheduler = &RoundRobinMaker{servers: servers}
 	case StrategyWeightedRoundRobin:
-		scheduler = strategy.NewWeightedRoundRobinMaker(serverWeighteds)
+		scheduler = NewWeightedRoundRobinMaker(serverWeighteds)
 	default:
-		scheduler = &strategy.RoundRobinMaker{servers: servers}
+		scheduler = &RoundRobinMaker{servers: servers}
 	}
 	return scheduler
 }

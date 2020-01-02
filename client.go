@@ -12,9 +12,8 @@ import (
 
 // Errors
 var (
-	ErrInvalidAddr                = errors.New("Invalid addr")
-	ErrInvalidAddrWeighted        = errors.New("Invalid addr weighted")
-	ErrInvalidAddrWeightedMustAll = errors.New("Invalid addr: must all addr have weighted")
+	ErrInvalidAddr                = errors.New("invalid addr")
+	ErrInvalidAddrWeighted        = errors.New("invalid addr weighted")
 )
 
 var (
