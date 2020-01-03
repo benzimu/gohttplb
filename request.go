@@ -25,7 +25,6 @@ type R struct {
 	serverWeighteds []ServerItem
 	scheduler       Scheduler
 	*LBConfig
-	*http.Client
 }
 
 // newR new R
@@ -34,7 +33,6 @@ func newR(servers []string, serverWeighteds []ServerItem, conf *LBConfig) *R {
 		servers:         servers,
 		serverWeighteds: serverWeighteds,
 		LBConfig:        conf,
-		Client:          conf.Client,
 	}
 
 	r.scheduler = NewScheduler(conf.Strategy, servers, serverWeighteds)
@@ -64,7 +62,7 @@ func (r *R) do(rargs *rArgs) (resp *http.Response, err error) {
 		req.Header.Set(key, val)
 	}
 
-	resp, err = r.Do(req)
+	resp, err = r.Client.Do(req)
 	return
 }
 

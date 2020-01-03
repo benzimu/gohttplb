@@ -83,10 +83,11 @@ func Gcd(x, y int) int {
 	if x == 0 || y == 0 {
 		return 0
 	}
+
 	tmp := x % y
 	if tmp > 0 {
 		return Gcd(y, tmp)
-	} else {
-		return y
 	}
+
+	return y
 }

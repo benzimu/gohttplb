@@ -78,7 +78,7 @@ type LBConfig struct {
 
 // LBClient ...
 type LBClient struct {
-	r *R
+	*R
 }
 
 // New ...
@@ -168,61 +168,61 @@ func (lbc *LBClient) parseParamsHeaders(paramsHeaders []map[string]string) (para
 // Get method request
 func (lbc *LBClient) Get(path string, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
 	params, headers := lbc.parseParamsHeaders(paramsHeaders)
-	return lbc.r.get(http.MethodGet, path, params, headers)
+	return lbc.R.get(http.MethodGet, path, params, headers)
 }
 
 // Post method request
 func (lbc *LBClient) Post(path string, body []byte, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
 	params, headers := lbc.parseParamsHeaders(paramsHeaders)
-	return lbc.r.post(http.MethodPost, path, params, headers, body)
+	return lbc.R.post(http.MethodPost, path, params, headers, body)
 }
 
 // Delete method request
 func (lbc *LBClient) Delete(path string, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
 	params, headers := lbc.parseParamsHeaders(paramsHeaders)
-	return lbc.r.delete(http.MethodDelete, path, params, headers)
+	return lbc.R.delete(http.MethodDelete, path, params, headers)
 }
 
 // Put method request
 func (lbc *LBClient) Put(path string, body []byte, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
 	params, headers := lbc.parseParamsHeaders(paramsHeaders)
-	return lbc.r.put(http.MethodPut, path, params, headers, body)
+	return lbc.R.put(http.MethodPut, path, params, headers, body)
 }
 
 // Patch method request
 func (lbc *LBClient) Patch(path string, body []byte, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
 	params, headers := lbc.parseParamsHeaders(paramsHeaders)
-	return lbc.r.patch(http.MethodPatch, path, params, headers, body)
+	return lbc.R.patch(http.MethodPatch, path, params, headers, body)
 }
 
 // PGet get method request and parse response
 func (lbc *LBClient) PGet(path string, paramsHeaders ...map[string]string) (statusCode int, data []byte, err error) {
 	params, headers := lbc.parseParamsHeaders(paramsHeaders)
-	return lbc.r.parseGet(http.MethodGet, path, params, headers)
+	return lbc.R.parseGet(http.MethodGet, path, params, headers)
 }
 
 // PPost post method request and parse response
 func (lbc *LBClient) PPost(path string, body []byte, paramsHeaders ...map[string]string) (statusCode int, data []byte, err error) {
 	params, headers := lbc.parseParamsHeaders(paramsHeaders)
-	return lbc.r.parsePost(http.MethodPost, path, params, headers, body)
+	return lbc.R.parsePost(http.MethodPost, path, params, headers, body)
 }
 
 // PDelete delete method request and parse response
 func (lbc *LBClient) PDelete(path string, paramsHeaders ...map[string]string) (statusCode int, data []byte, err error) {
 	params, headers := lbc.parseParamsHeaders(paramsHeaders)
-	return lbc.r.parseDelete(http.MethodDelete, path, params, headers)
+	return lbc.R.parseDelete(http.MethodDelete, path, params, headers)
 }
 
 // PPut put method request and parse response
 func (lbc *LBClient) PPut(path string, body []byte, paramsHeaders ...map[string]string) (statusCode int, data []byte, err error) {
 	params, headers := lbc.parseParamsHeaders(paramsHeaders)
-	return lbc.r.parsePut(http.MethodPut, path, params, headers, body)
+	return lbc.R.parsePut(http.MethodPut, path, params, headers, body)
 }
 
 // PPatch patch method request and parse response
 func (lbc *LBClient) PPatch(path string, body []byte, paramsHeaders ...map[string]string) (statusCode int, data []byte, err error) {
 	params, headers := lbc.parseParamsHeaders(paramsHeaders)
-	return lbc.r.parsePatch(http.MethodPatch, path, params, headers, body)
+	return lbc.R.parsePatch(http.MethodPatch, path, params, headers, body)
 }
 
 func (lbc *LBClient) setJSONHeader(headers map[string]string) {
@@ -242,61 +242,61 @@ func (lbc *LBClient) jsonParamsHeaders(paramsHeaders []map[string]string) (param
 // JGet json get method request
 func (lbc *LBClient) JGet(path string, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
 	params, headers := lbc.jsonParamsHeaders(paramsHeaders)
-	return lbc.r.get(http.MethodGet, path, params, headers)
+	return lbc.R.get(http.MethodGet, path, params, headers)
 }
 
 // JPost json post method request
 func (lbc *LBClient) JPost(path string, body []byte, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
 	params, headers := lbc.jsonParamsHeaders(paramsHeaders)
-	return lbc.r.post(http.MethodPost, path, params, headers, body)
+	return lbc.R.post(http.MethodPost, path, params, headers, body)
 }
 
 // JDelete json delete method request
 func (lbc *LBClient) JDelete(path string, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
 	params, headers := lbc.jsonParamsHeaders(paramsHeaders)
-	return lbc.r.delete(http.MethodDelete, path, params, headers)
+	return lbc.R.delete(http.MethodDelete, path, params, headers)
 }
 
 // JPut json put method request
 func (lbc *LBClient) JPut(path string, body []byte, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
 	params, headers := lbc.jsonParamsHeaders(paramsHeaders)
-	return lbc.r.put(http.MethodPut, path, params, headers, body)
+	return lbc.R.put(http.MethodPut, path, params, headers, body)
 }
 
 // JPatch json patch method request
 func (lbc *LBClient) JPatch(path string, body []byte, paramsHeaders ...map[string]string) (resp *http.Response, err error) {
 	params, headers := lbc.jsonParamsHeaders(paramsHeaders)
-	return lbc.r.patch(http.MethodPatch, path, params, headers, body)
+	return lbc.R.patch(http.MethodPatch, path, params, headers, body)
 }
 
 // JPGet json get method request and parse response
 func (lbc *LBClient) JPGet(path string, paramsHeaders ...map[string]string) (statusCode int, data []byte, err error) {
 	params, headers := lbc.jsonParamsHeaders(paramsHeaders)
-	return lbc.r.parseGet(http.MethodGet, path, params, headers)
+	return lbc.R.parseGet(http.MethodGet, path, params, headers)
 }
 
 // JPPost json post method request and parse response
 func (lbc *LBClient) JPPost(path string, body []byte, paramsHeaders ...map[string]string) (statusCode int, data []byte, err error) {
 	params, headers := lbc.jsonParamsHeaders(paramsHeaders)
-	return lbc.r.parsePost(http.MethodPost, path, params, headers, body)
+	return lbc.R.parsePost(http.MethodPost, path, params, headers, body)
 }
 
 // JPDelete json delete method request and parse response
 func (lbc *LBClient) JPDelete(path string, paramsHeaders ...map[string]string) (statusCode int, data []byte, err error) {
 	params, headers := lbc.jsonParamsHeaders(paramsHeaders)
-	return lbc.r.parseDelete(http.MethodDelete, path, params, headers)
+	return lbc.R.parseDelete(http.MethodDelete, path, params, headers)
 }
 
 // JPPut json put method request and parse response
 func (lbc *LBClient) JPPut(path string, body []byte, paramsHeaders ...map[string]string) (statusCode int, data []byte, err error) {
 	params, headers := lbc.jsonParamsHeaders(paramsHeaders)
-	return lbc.r.parsePut(http.MethodPut, path, params, headers, body)
+	return lbc.R.parsePut(http.MethodPut, path, params, headers, body)
 }
 
 // JPPatch json patch method request and parse response
 func (lbc *LBClient) JPPatch(path string, body []byte, paramsHeaders ...map[string]string) (statusCode int, data []byte, err error) {
 	params, headers := lbc.jsonParamsHeaders(paramsHeaders)
-	return lbc.r.parsePatch(http.MethodPatch, path, params, headers, body)
+	return lbc.R.parsePatch(http.MethodPatch, path, params, headers, body)
 }
 
 // PResponse parse response use custom or default ResponseParser
