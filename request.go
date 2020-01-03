@@ -34,7 +34,7 @@ func newR(servers []string, serverWeighteds []ServerItem, conf *LBConfig) *R {
 		servers:         servers,
 		serverWeighteds: serverWeighteds,
 		LBConfig:        conf,
-		Client:          conf.client,
+		Client:          conf.Client,
 	}
 
 	r.scheduler = NewScheduler(conf.Strategy, servers, serverWeighteds)

@@ -12,14 +12,19 @@ import (
 
 // Errors
 var (
-	ErrInvalidAddr                = errors.New("invalid addr")
-	ErrInvalidAddrWeighted        = errors.New("invalid addr weighted")
+	ErrInvalidAddr         = errors.New("invalid addr")
+	ErrInvalidAddrWeighted = errors.New("invalid addr weighted")
 )
 
+// Default config
 var (
 	DefaultAddrsSeparator        = ","
 	DefaultAddrWeightedSeparator = "@@"
 	DefaultStrategy              = StrategyRoundRobin
+
+	DefaultRetry         = 1
+	DefaultTransport     = defaultTransport
+	DefaultClientTimeout = 10 * time.Second
 )
 
 // Headers
@@ -28,13 +33,6 @@ var (
 	DefaultContentType = "application/json; charset=utf-8"
 	HeaderAccept       = "Accept"
 	DefaultAccept      = "application/json"
-)
-
-// Default config
-var (
-	DefaultRetry         = 1
-	DefaultTransport     = defaultTransport
-	DefaultClientTimeout = 10 * time.Second
 )
 
 func setDefaultConf(conf *LBConfig) {
@@ -47,9 +45,11 @@ func setDefaultConf(conf *LBConfig) {
 	if conf.ClientTimeout == 0 {
 		conf.ClientTimeout = DefaultClientTimeout
 	}
-	conf.client = &http.Client{
-		Transport: conf.Transport,
-		Timeout:   conf.ClientTimeout,
+	if conf.Client == nil {
+		conf.Client = &http.Client{
+			Transport: conf.Transport,
+			Timeout:   conf.ClientTimeout,
+		}
 	}
 }
 
@@ -62,13 +62,14 @@ type LBConfig struct {
 	// Most retries: len(servers) * Retry
 	// Default 1
 	Retry int
-	// Client for http request
-	// Default defaultHTTPClient
-	client *http.Client
 	// ResponseParser response parser
 	// Will auto parse response if set, and must use JPGet, JPPost...
 	ResponseParser ResponseParser
+	// Client for http request
+	// If not set, will new with Transport and ClientTimeout
+	Client *http.Client
 	// Transport for http client
+	// Default DefaultTransport
 	Transport *http.Transport
 	// ClientTimeout for `http.Client.Timeout`
 	// Default 10s
